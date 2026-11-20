@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Puerto Taxi</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🚕 Puerto&nbsp;Taxi</div>
+    <nav class="roles" role="tablist" aria-label="Tipo de usuario">
+      <button class="role-tab is-active" data-role="passenger" role="tab" aria-selected="true">Pasajero</button>
+      <button class="role-tab" data-role="driver" role="tab" aria-selected="false">Taxista</button>
+      <button class="role-tab" data-role="admin" role="tab" aria-selected="false">Central</button>
+    </nav>
+    <button id="logout" class="ghost" hidden>Cerrar sesión</button>
+  </header>
+
+  <main>
+    <!-- ===================== PASAJERO ===================== -->
+    <section class="panel" id="panel-passenger">
+      <div class="card narrow" id="p-login">
+        <h1>Pedir un taxi</h1>
+        <p class="muted">Te enviaremos un código por SMS para verificar tu número.</p>
+        <form id="p-phone-form" novalidate>
+          <label>Teléfono
+            <input id="p-phone" inputmode="tel" autocomplete="tel" placeholder="8888-8888" maxlength="20" required>
+          </label>
+          <button type="submit" class="primary" id="p-send-otp">Enviar código</button>
+        </form>
+        <form id="p-verify-form" hidden novalidate>
+          <label>Código de 6 dígitos
+            <input id="p-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required>
+          </label>
+          <button type="submit" class="primary" id="p-verify">Entrar</button>
+          <p class="hint" id="p-devcode" hidden></p>
+        </form>
+      </div>
+
+      <div id="p-app" hidden>
+        <div class="card">
+          <h2>Nuevo viaje</h2>
+          <form id="p-trip-form" class="grid" novalidate>
+            <label>Zona
+              <select id="p-zone" required></select>
+            </label>
+            <label>Dirección exacta
+              <input id="p-address" maxlength="200" placeholder="Frente a la iglesia, casa azul" required>
+            </label>
+            <label>Forma de pago
+              <select id="p-payment">
+                <option value="Cash">Efectivo</option>
+                <option value="Sinpe">SINPE Móvil</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" id="p-pet"> Viajo con mascota</label>
+            <button type="submit" class="primary">Solicitar taxi</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Mis viajes</h2>
+          <div id="p-trips" class="list"><p class="muted">Sin viajes todavía.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TAXISTA ===================== -->
+    <section class="panel" id="panel-driver" hidden>
+      <div class="card narrow" id="d-login">
+        <h1>Acceso de taxista</h1>
+        <form id="d-login-form" novalidate>
+          <label>Correo
+            <input id="d-email" type="email" autocomplete="username" maxlength="160" required>
+          </label>
+          <label>Contraseña
+            <input id="d-password" type="password" autocomplete="current-password" maxlength="128" required>
+          </label>
+          <button type="submit" class="primary">Entrar</button>
+        </form>
+      </div>
+
+      <div id="d-app" hidden>
+        <div class="card">
+          <h2>Mi estado</h2>
+          <p id="d-summary" class="muted"></p>
+          <div class="row">
+            <button id="d-toggle" class="primary">Ponerme disponible</button>
+            <button id="d-locate" class="ghost">Actualizar ubicación</button>
+            <button id="d-sos" class="danger">10-33</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Viajes disponibles</h2>
+          <div id="d-available" class="list"><p class="muted">Sin solicitudes por ahora.</p></div>
+        </div>
+
+        <div class="card">
+          <h2>Mi viaje activo</h2>
+          <div id="d-active" class="list"><p class="muted">No tienes un viaje activo.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CENTRAL ===================== -->
+    <section class="panel" id="panel-admin" hidden>
+      <div class="card narrow" id="a-login">
+        <h1>Central de despacho</h1>
+        <form id="a-login-form" novalidate>
+          <label>Correo
+            <input id="a-email" type="email" autocomplete="username" maxlength="160" required>
+          </label>
+          <label>Contraseña
+            <input id="a-password" type="password" autocomplete="current-password" maxlength="128" required>
+          </label>
+          <button type="submit" class="primary">Entrar</button>
+        </form>
+      </div>
+
+      <div id="a-app" hidden>
+        <div class="card">
+          <h2>Resumen</h2>
+          <div id="a-stats" class="stats"></div>
+        </div>
+
+        <div class="card">
+          <h2>Alertas 10-33 activas</h2>
+          <div id="a-alerts" class="list"><p class="muted">Sin alertas activas.</p></div>
+        </div>
+
+        <div class="card">
+          <h2>Alta de chofer</h2>
+          <form id="a-new-driver" class="grid" novalidate>
+            <label>Nombre completo <input id="a-fullname" maxlength="120" required></label>
+            <label>Teléfono <input id="a-phone" inputmode="tel" maxlength="20" required></label>
+            <label>Correo <input id="a-email-driver" type="email" maxlength="160" required></label>
+            <label>Contraseña temporal <input id="a-password-driver" type="password" minlength="8" maxlength="128" required></label>
+            <label>Placa <input id="a-plate" maxlength="12" required></label>
+            <label>Tipo de unidad
+              <select id="a-unit">
+                <option>Sedán</option>
+                <option>Minivan</option>
+                <option>SUV</option>
+                <option>Pickup</option>
+              </select>
+            </label>
+            <label>Zona <select id="a-zone" required></select></label>
+            <button type="submit" class="primary">Crear chofer</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Choferes</h2>
+          <div id="a-drivers" class="list"><p class="muted">Cargando…</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== CHAT ===================== -->
+  <dialog id="chat-dialog">
+    <header class="chat-head">
+      <h2 id="chat-title">Chat</h2>
+      <button id="chat-close" class="ghost" type="button">Cerrar</button>
+    </header>
+    <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+    <form id="chat-form" class="chat-form" novalidate>
+      <input id="chat-text" maxlength="500" placeholder="Escribe un mensaje" autocomplete="off">
+      <button type="submit" class="primary">Enviar</button>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <footer class="footer">
+    <span>Puerto Taxi · Puntarenas</span>
+    <span id="conn" class="muted"></span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

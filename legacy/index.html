@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Puerto Taxi Puntarenas</title>
+  <meta name="description" content="Servicio oficial de Puerto Taxi Puntarenas. Solicita tu taxi seguro y rápido en Puntarenas, El Roble, Chacarita,Barranca y alrededores las 24 horas.">
+  <link rel="stylesheet" href="estilos.css">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- React 18 & ReactDOM Production UMD CDNs -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel Standalone para JSX en el navegador -->
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- Contenedor Raíz Inmediato con Esqueleto Visual Anti-Pantalla en Blanco -->
+  <div id="root">
+    <div style="min-height:100vh;background-color:#020617;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,sans-serif;color:#ffffff;text-align:center;">
+      <div style="width:64px;height:64px;background-color:rgba(251,191,36,0.1);border:2px solid rgba(251,191,36,0.4);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;">
+        🚕
+      </div>
+      <div style="font-size:11px;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;color:#fbbf24;margin-bottom:4px;">
+        PUERTO TAXI PUNTARENAS
+      </div>
+      <div style="font-size:24px;font-weight:900;color:#ffffff;margin-bottom:8px;">
+        Elija Usuario
+      </div>
+      <div style="font-size:12px;color:#94a3b8;max-width:280px;line-height:1.4;margin-bottom:24px;">
+        Selecciona tu perfil
+      </div>
+      <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+        <div style="height:52px;background-color:#ea580c;border-radius:14px;opacity:0.85;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;letter-spacing:0.05em;color:#ffffff;">
+          👤 PASAJERO
+        </div>
+        <div style="height:52px;background-color:#fbbf24;border-radius:14px;opacity:0.85;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;letter-spacing:0.05em;color:#020617;">
+          🚕 TAXISTA
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;">
+        By Ciudad Avatar Puntarenas Copyright Todos los derechos reservados 2026.
+      </div>
+    </div>
+  </div>
+
+  <script src="logica.js"></script>
+</body>
+</html>
