@@ -307,7 +307,7 @@ function Footer() {
   return (
     <footer className="site-footer">
       <span>Creador: <a href="https://github.com/JFabiohm" target="_blank" rel="noreferrer">JFabiohm</a></span>
-      <span>Teléfono: <a href="tel:+50672751834">+506 72751834</a></span>
+      <a href="tel:+50672751834">+506 72751834</a>
     </footer>
   )
 }
