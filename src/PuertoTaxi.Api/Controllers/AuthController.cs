@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using PuertoTaxi.Api.Contracts;
 using PuertoTaxi.Api.Security;
 using PuertoTaxi.Api.Services;
@@ -19,6 +20,13 @@ public sealed class AuthController(
     IConfiguration config,
     ILogger<AuthController> logger) : ControllerBase
 {
+    // El cliente web pide una respuesta sin tokens: la sesión vive en cookies
+    // HttpOnly. Los clientes existentes siguen recibiendo el AuthResponse completo.
+    private object ToClient(AuthResponse response) =>
+        Request.Headers.ContainsKey(AuthCookies.CookieAuthHeader)
+            ? new { response.User, response.AccessTokenExpiresAtUtc, response.RefreshTokenExpiresAtUtc }
+            : response;
+
     /// <summary>Login de choferes y administradores (email + contraseña).</summary>
     [HttpPost("login")]
     [AllowAnonymous]
@@ -39,7 +47,8 @@ public sealed class AuthController(
         }
 
         await audit.LogAsync("auth.login", "User", response!.User.Id.ToString(), ct: ct);
-        return Ok(response);
+        AuthCookies.Set(Response, response!);
+        return Ok(ToClient(response!));
     }
 
     /// <summary>Envía un OTP al teléfono (pasajeros).</summary>
@@ -76,7 +85,7 @@ public sealed class AuthController(
     [HttpPost("otp/verify")]
     [AllowAnonymous]
     [EnableRateLimiting("otp-verify")]
-    public async Task<ActionResult<AuthResponse>> VerifyOtp(OtpVerifyRequest request, CancellationToken ct)
+    public async Task<IActionResult> VerifyOtp(OtpVerifyRequest request, CancellationToken ct)
     {
         var (user, error) = await otp.VerifyAsync(request.Phone, request.Code, ct);
 
@@ -94,34 +103,47 @@ public sealed class AuthController(
 
         var response = await tokens.IssueAsync(user!, current.Ip, ct);
         await audit.LogAsync("auth.otp_verify", "User", user!.Id.ToString(), ct: ct);
-        return Ok(response);
+        AuthCookies.Set(Response, response);
+        return Ok(ToClient(response));
     }
 
     /// <summary>Rota el refresh token y entrega un nuevo access token.</summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
-    public async Task<ActionResult<AuthResponse>> Refresh(RefreshRequest request, CancellationToken ct)
+    public async Task<IActionResult> Refresh([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RefreshRequest? request, CancellationToken ct)
     {
-        var (response, error) = await tokens.RotateAsync(request.RefreshToken, current.Ip, ct);
+        // El navegador no conoce el refresh token: lo toma de la cookie HttpOnly.
+        var raw = request?.RefreshToken;
+        if (string.IsNullOrWhiteSpace(raw))
+            Request.Cookies.TryGetValue(AuthCookies.Refresh, out raw);
+
+        var (response, error) = await tokens.RotateAsync(raw ?? string.Empty, current.Ip, ct);
 
         if (error is not null)
         {
             logger.LogWarning("Refresh rechazado: {Error}", error);
+            AuthCookies.Clear(Response);
             return Problem(statusCode: 401, title: "Sesión inválida",
                 detail: "Inicia sesión de nuevo.");
         }
 
-        return Ok(response);
+        AuthCookies.Set(Response, response!);
+        return Ok(ToClient(response!));
     }
 
     /// <summary>Revoca el refresh token actual.</summary>
     [HttpPost("logout")]
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
-    public async Task<IActionResult> Logout(RefreshRequest request, CancellationToken ct)
+    public async Task<IActionResult> Logout([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RefreshRequest? request, CancellationToken ct)
     {
-        await tokens.RevokeAsync(request.RefreshToken, ct);
+        var raw = request?.RefreshToken;
+        if (string.IsNullOrWhiteSpace(raw))
+            Request.Cookies.TryGetValue(AuthCookies.Refresh, out raw);
+
+        await tokens.RevokeAsync(raw ?? string.Empty, ct);
+        AuthCookies.Clear(Response);
         return NoContent();
     }
 }

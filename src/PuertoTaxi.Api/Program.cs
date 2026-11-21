@@ -153,16 +153,24 @@ builder.Services
             RoleClaimType = AppClaims.Role
         };
 
-        // SignalR no puede mandar cabeceras en el handshake: acepta ?access_token= solo en /hubs.
         o.Events = new JwtBearerEvents
         {
             OnMessageReceived = ctx =>
             {
-                var token = ctx.Request.Query["access_token"];
-                if (!string.IsNullOrEmpty(token) &&
+                // Compatibilidad SignalR antigua: ?access_token= solo en /hubs.
+                var queryToken = ctx.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(queryToken) &&
                     ctx.HttpContext.Request.Path.StartsWithSegments("/hubs"))
                 {
-                    ctx.Token = token;
+                    ctx.Token = queryToken;
+                }
+                // La web usa cookies HttpOnly: el navegador las envía también en el
+                // handshake de WebSocket, así que no hace falta el token en la URL.
+                else if (string.IsNullOrEmpty(ctx.Token) &&
+                         ctx.Request.Cookies.TryGetValue(AuthCookies.Access, out var cookieToken) &&
+                         !string.IsNullOrEmpty(cookieToken))
+                {
+                    ctx.Token = cookieToken;
                 }
                 return Task.CompletedTask;
             },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { api, API_URL, getAccessToken } from '../api'
+import { api, API_URL, hasSession } from '../api'
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 
 export default function DriverPanel({ user, execute, section }) {
@@ -19,10 +19,11 @@ export default function DriverPanel({ user, execute, section }) {
   useEffect(() => {
     execute(load)
 
-    if (!getAccessToken()) return undefined
+    if (!hasSession()) return undefined
 
     const connection = new HubConnectionBuilder()
-      .withUrl(`${API_URL}/hubs/taxi`, { accessTokenFactory: () => getAccessToken() || '' })
+      // La cookie HttpOnly se envía sola en el handshake; sin token en la URL.
+      .withUrl(`${API_URL}/hubs/taxi`, { withCredentials: true })
       .withAutomaticReconnect()
       .configureLogging(LogLevel.Warning)
       .build()

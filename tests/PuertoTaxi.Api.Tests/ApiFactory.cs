@@ -16,9 +16,19 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 {
     public string DatabaseName { get; } = "PuertoTaxiTests_" + Guid.NewGuid().ToString("N");
 
-    public string ConnectionString =>
-        $"Server=(localdb)\\MSSQLLocalDB;Database={DatabaseName};Trusted_Connection=True;" +
-        "TrustServerCertificate=True;MultipleActiveResultSets=True";
+    // En Linux no existe LocalDB. PUERTOTAXI_TEST_DB_TEMPLATE permite usar otro
+    // SQL (p. ej. el contenedor Docker) con {db} como marcador de la base.
+    public string ConnectionString
+    {
+        get
+        {
+            var template = Environment.GetEnvironmentVariable("PUERTOTAXI_TEST_DB_TEMPLATE");
+            return string.IsNullOrWhiteSpace(template)
+                ? $"Server=(localdb)\\MSSQLLocalDB;Database={DatabaseName};Trusted_Connection=True;" +
+                  "TrustServerCertificate=True;MultipleActiveResultSets=True"
+                : template.Replace("{db}", DatabaseName, StringComparison.Ordinal);
+        }
+    }
 
     // Límites altos por defecto: las pruebas no deben chocar con el rate limiting.
     public int AuthPermitLimit { get; }

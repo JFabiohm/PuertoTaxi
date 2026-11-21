@@ -1,0 +1,4 @@
+Contact: https://github.com/JFabiohm/PuertoTaxi/security/advisories/new
+Expires: 2027-11-21T00:00:00Z
+Preferred-Languages: es, en
+Canonical: https://taxisrojoscr.netlify.app/.well-known/security.txt

@@ -10,7 +10,7 @@ public sealed record OtpRequestDto(string Phone);
 
 public sealed record OtpVerifyRequest(string Phone, string Code);
 
-public sealed record RefreshRequest(string RefreshToken);
+public sealed record RefreshRequest(string? RefreshToken);
 
 public sealed record AuthResponse(
     string AccessToken,

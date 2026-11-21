@@ -1,50 +1,50 @@
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5218').replace(/\/$/, '')
-const TOKEN_KEY = 'puertotaxi.accessToken'
 const USER_KEY = 'puertotaxi.user'
 
-export function getAccessToken() {
-  return localStorage.getItem(TOKEN_KEY)
-}
-
+// El access/refresh token vive en cookies HttpOnly del servidor. Aquí solo se
+// guarda el perfil (sin secretos) para saber si hay sesión y mostrar el nombre.
 export function saveSession(response) {
-  localStorage.setItem(TOKEN_KEY, response.accessToken)
-  localStorage.setItem(USER_KEY, JSON.stringify(response.user))
+  sessionStorage.setItem(USER_KEY, JSON.stringify(response.user))
 }
 
 export function getStoredUser() {
-  const value = localStorage.getItem(USER_KEY)
+  const value = sessionStorage.getItem(USER_KEY)
   return value ? JSON.parse(value) : null
 }
 
-export function clearSession() {
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(USER_KEY)
+export function hasSession() {
+  return getStoredUser() !== null
 }
 
-async function request(path, options = {}) {
+export function clearSession() {
+  sessionStorage.removeItem(USER_KEY)
+}
+
+async function request(path, options = {}, canRetry = true) {
   const headers = new Headers(options.headers)
-  const token = getAccessToken()
+  headers.set('X-Cookie-Auth', '1') // la API omite los tokens en la respuesta
 
   if (options.body !== undefined) {
     headers.set('Content-Type', 'application/json')
   }
 
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`)
-  }
-
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers,
+    credentials: 'include',
   })
 
-  if (response.status === 401) {
+  if (response.status === 401 && canRetry && !path.startsWith('/api/auth/')) {
+    const refreshed = await fetch(`${API_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'X-Cookie-Auth': '1' },
+      credentials: 'include',
+    })
+    if (refreshed.ok) return request(path, options, false)
     clearSession()
   }
 
-  if (response.status === 204) {
-    return null
-  }
+  if (response.status === 204) return null
 
   const contentType = response.headers.get('content-type') || ''
   const payload = contentType.includes('json')
@@ -137,6 +137,7 @@ export const api = {
   }),
   adminStats: () => request('/api/admin/stats'),
   audit: () => request('/api/admin/audit?take=100'),
+  logout: () => request('/api/auth/logout', { method: 'POST' }),
 }
 
 export { API_URL }

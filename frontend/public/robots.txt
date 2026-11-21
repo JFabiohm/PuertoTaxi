@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://taxisrojoscr.netlify.app/sitemap.xml

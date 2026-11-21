@@ -97,9 +97,12 @@ public sealed class EmergencyController(
     [Authorize(Policy = Policies.DriverOrAdmin)]
     public async Task<ActionResult<IReadOnlyList<EmergencyDto>>> Active(CancellationToken ct)
     {
+        var me = current.RequireId();
+
         var alerts = await db.EmergencyAlerts.AsNoTracking()
             .Include(a => a.Driver).ThenInclude(d => d.DriverProfile)
-            .Where(a => a.IsActive)
+            // Un chofer solo ve sus propias alertas; la central (admin) ve todas.
+            .Where(a => a.IsActive && (current.IsAdmin || a.DriverId == me))
             .OrderByDescending(a => a.CreatedAtUtc)
             .ToListAsync(ct);
 

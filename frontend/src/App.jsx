@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { api, clearSession, getStoredUser, saveSession } from './api'
 import AdminPanel from './components/AdminPanel'
 import DriverPanel from './components/DriverPanel'
-import { firebaseApp } from './firebase'
 
 const emptyTrip = {
   zone: 'Puntarenas Centro',
@@ -161,7 +160,8 @@ function App() {
     }
   }
 
-  function logout() {
+  async function logout() {
+    try { await api.logout() } catch { /* igual cerramos la sesión local */ }
     clearSession()
     setUser(null)
     setTrips([])
@@ -217,8 +217,6 @@ function App() {
         </section>}
 
         {publicSection === 'emergency' && <section className="card passenger-emergency public-form-card"><p className="eyebrow">Atención de la central</p><h2>Emergencia</h2><p className="muted">Describe lo que ocurre. Primero verificaremos tu teléfono y después enviaremos la ubicación a la central.</p><form onSubmit={(event) => { event.preventDefault(); openPassengerLogin('emergency') }} className="form-stack"><label>¿Qué está pasando?<textarea required maxLength="1000" value={emergency.description} onChange={(event) => setEmergency({ ...emergency, description: event.target.value })} placeholder="Describe la situación..." /></label><button className="danger">Continuar con emergencia</button></form></section>}
-
-        <small className="environment">Firebase SDK: {firebaseApp ? 'configurado' : 'pendiente de .env'}</small>
 
         {authOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setAuthOpen(false)}>
           <section className="modal card" role="dialog" aria-modal="true" aria-labelledby="login-title">
