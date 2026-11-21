@@ -362,7 +362,8 @@ if (proxyOptions.Enabled)
 if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
     app.UseHsts();
 
-if (!app.Environment.IsEnvironment("Testing"))
+if (!app.Environment.IsEnvironment("Testing") &&
+    builder.Configuration.GetValue("App:RequireHttps", true))
     app.UseHttpsRedirection();
 
 app.UseResponseCompression();

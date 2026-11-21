@@ -1,0 +1,5 @@
+# La API de Somee no tiene SSL; Netlify proxya las peticiones para que el
+# navegador solo vea HTTPS y no haya mixed content.
+/api/*   http://TaxisPuntarenas.somee.com/api/:splat   200
+/hubs/*  http://TaxisPuntarenas.somee.com/hubs/:splat  200
+/health  http://TaxisPuntarenas.somee.com/health       200

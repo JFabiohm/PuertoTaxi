@@ -1,0 +1,10 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Apunta al propio sitio para que _redirects proxye /api/* a Somee y el
+  # navegador solo hable HTTPS (la API de Somee todavía no tiene SSL).
+  VITE_API_URL = "https://taxisrojoscr.netlify.app"

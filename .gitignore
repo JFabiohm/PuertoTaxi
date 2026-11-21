@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Local environment files (secretos). Las plantillas .env.example sí se versionan.
+.env
+**/.env
+!.env.example
+!**/.env.example
+
+# Archivos de netrc temporales usados por los scripts de subida
+.netrc
+*.netrc

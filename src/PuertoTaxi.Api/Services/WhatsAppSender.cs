@@ -22,6 +22,10 @@ public sealed class WhatsAppSender(
     public bool IsConfigured => options.Value.IsConfigured;
     public bool IsOtpConfigured => options.Value.IsOtpConfigured;
 
+    // La Cloud API exige E.164 (+506...); en la BD se guardan solo dígitos.
+    private static string ToE164(string phone) =>
+        phone.StartsWith('+') ? phone : "+" + phone.TrimStart('+');
+
     public async Task SendPassengerEmergencyAsync(
         string description,
         decimal latitude,
@@ -37,7 +41,7 @@ public sealed class WhatsAppSender(
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.AccessToken);
         request.Content = JsonContent.Create(new WhatsAppMessage(
             "whatsapp",
-            settings.CentralPhoneNumber,
+            ToE164(settings.CentralPhoneNumber),
             "text",
             new WhatsAppText($"EMERGENCIA DE PASAJERO\nDescripción: {description}\nUbicación: https://maps.google.com/?q={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}")));
 
@@ -52,15 +56,15 @@ public sealed class WhatsAppSender(
     public async Task SendOtpAsync(string phone, string code, CancellationToken ct)
     {
         var settings = options.Value;
-        if (!settings.IsConfigured)
-            throw new InvalidOperationException("WhatsApp Cloud API no está configurada.");
+        if (!settings.IsOtpConfigured)
+            throw new InvalidOperationException("WhatsApp Cloud API no está configurada para OTP.");
 
         var url = $"https://graph.facebook.com/{settings.GraphApiVersion}/{settings.PhoneNumberId}/messages";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.AccessToken);
         request.Content = JsonContent.Create(new WhatsAppTemplateMessage(
             "whatsapp",
-            phone,
+            ToE164(phone),
             "template",
             new WhatsAppTemplate(settings.OtpTemplateName, new WhatsAppTemplateLanguage(settings.OtpTemplateLanguage),
                 [new WhatsAppTemplateComponent("body", [new WhatsAppTemplateParameter("text", code)])])));
