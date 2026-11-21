@@ -18,8 +18,11 @@ public sealed class AuthController(
     AuditService audit,
     CurrentUser current,
     IConfiguration config,
+    IHostEnvironment env,
     ILogger<AuthController> logger) : ControllerBase
 {
+    private bool SecureCookies => !env.IsDevelopment() && !env.IsEnvironment("Testing");
+
     // El cliente web pide una respuesta sin tokens: la sesión vive en cookies
     // HttpOnly. Los clientes existentes siguen recibiendo el AuthResponse completo.
     private object ToClient(AuthResponse response) =>
@@ -47,7 +50,7 @@ public sealed class AuthController(
         }
 
         await audit.LogAsync("auth.login", "User", response!.User.Id.ToString(), ct: ct);
-        AuthCookies.Set(Response, response!);
+        AuthCookies.Set(Response, response!, SecureCookies);
         return Ok(ToClient(response!));
     }
 
@@ -103,7 +106,7 @@ public sealed class AuthController(
 
         var response = await tokens.IssueAsync(user!, current.Ip, ct);
         await audit.LogAsync("auth.otp_verify", "User", user!.Id.ToString(), ct: ct);
-        AuthCookies.Set(Response, response);
+        AuthCookies.Set(Response, response, SecureCookies);
         return Ok(ToClient(response));
     }
 
@@ -123,12 +126,12 @@ public sealed class AuthController(
         if (error is not null)
         {
             logger.LogWarning("Refresh rechazado: {Error}", error);
-            AuthCookies.Clear(Response);
+            AuthCookies.Clear(Response, SecureCookies);
             return Problem(statusCode: 401, title: "Sesión inválida",
                 detail: "Inicia sesión de nuevo.");
         }
 
-        AuthCookies.Set(Response, response!);
+        AuthCookies.Set(Response, response!, SecureCookies);
         return Ok(ToClient(response!));
     }
 
@@ -143,7 +146,7 @@ public sealed class AuthController(
             Request.Cookies.TryGetValue(AuthCookies.Refresh, out raw);
 
         await tokens.RevokeAsync(raw ?? string.Empty, ct);
-        AuthCookies.Clear(Response);
+        AuthCookies.Clear(Response, SecureCookies);
         return NoContent();
     }
 }

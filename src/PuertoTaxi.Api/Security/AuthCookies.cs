@@ -13,32 +13,34 @@ public static class AuthCookies
     public const string Refresh = "puertotaxi_refresh";
     public const string CookieAuthHeader = "X-Cookie-Auth";
 
-    public static void Set(HttpResponse response, AuthResponse auth)
+    public static void Set(HttpResponse response, AuthResponse auth, bool secure)
     {
-        Append(response, Access, auth.AccessToken, auth.AccessTokenExpiresAtUtc);
-        Append(response, Refresh, auth.RefreshToken, auth.RefreshTokenExpiresAtUtc);
+        Append(response, Access, auth.AccessToken, auth.AccessTokenExpiresAtUtc, secure);
+        Append(response, Refresh, auth.RefreshToken, auth.RefreshTokenExpiresAtUtc, secure);
     }
 
-    public static void Clear(HttpResponse response)
+    public static void Clear(HttpResponse response, bool secure)
     {
-        var options = BaseOptions(response);
+        var options = BaseOptions(secure);
         response.Cookies.Delete(Access, options);
         response.Cookies.Delete(Refresh, options);
     }
 
-    private static void Append(HttpResponse response, string name, string value, DateTime expiresUtc)
+    private static void Append(HttpResponse response, string name, string value, DateTime expiresUtc, bool secure)
     {
-        var options = BaseOptions(response);
+        var options = BaseOptions(secure);
         options.MaxAge = expiresUtc > DateTime.UtcNow
             ? expiresUtc - DateTime.UtcNow
             : TimeSpan.Zero;
         response.Cookies.Append(name, value, options);
     }
 
-    private static CookieOptions BaseOptions(HttpResponse response) => new()
+    private static CookieOptions BaseOptions(bool secure) => new()
     {
         HttpOnly = true,
-        Secure = response.HttpContext.Request.IsHttps,
+        // Somee no propaga X-Forwarded-Proto; en producción se fuerza Secure
+        // aunque la petición interna llegue por HTTP al app pool.
+        Secure = secure,
         SameSite = SameSiteMode.Lax,
         Path = "/",
         IsEssential = true

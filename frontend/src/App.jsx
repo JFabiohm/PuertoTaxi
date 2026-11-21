@@ -226,6 +226,7 @@ function App() {
             <Feedback error={error} notice={notice} />
           </section>
         </div>}
+        <Footer />
       </main>
     )
   }
@@ -236,6 +237,7 @@ function App() {
         <PanelHeader user={user} onLogout={logout} title="Panel administrativo" section={section} onSectionChange={setSection} />
         <Feedback error={error} notice={notice} />
         <AdminPanel execute={execute} section={section} />
+        <Footer />
       </main>
     )
   }
@@ -246,6 +248,7 @@ function App() {
         <PanelHeader user={user} onLogout={logout} title="Panel del taxista" section={section} onSectionChange={setSection} />
         <Feedback error={error} notice={notice} />
         <DriverPanel user={user} execute={execute} section={section} />
+        <Footer />
       </main>
     )
   }
@@ -295,7 +298,17 @@ function App() {
           <TripList trips={trips} />
         </section>}
       </div>
+      <Footer />
     </main>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="site-footer">
+      <span>Creador: <a href="https://github.com/JFabiohm" target="_blank" rel="noreferrer">JFabiohm</a></span>
+      <span>Teléfono: <a href="tel:+50672751834">+506 72751834</a></span>
+    </footer>
   )
 }
 
