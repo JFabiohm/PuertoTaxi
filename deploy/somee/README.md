@@ -3,6 +3,25 @@
 Esta carpeta deja lista la API ASP.NET Core 10 para subirla a Somee con una
 base de datos MS SQL hospedada allí.
 
+## Regla: verificar antes de publicar
+
+**Nada se sube a producción sin pasar antes `./check.sh`.** Ese script:
+
+1. compila la solución;
+2. corre los 59 tests de integración (usa `TEST_DB_TEMPLATE` de `.env` para
+   apuntar al SQL de Docker en Linux, donde no existe LocalDB);
+3. genera `frontend/dist`;
+4. comprueba que la API y el frontend local respondan.
+
+`all.sh` ya llama a `check.sh` automáticamente antes de publicar. Si algo falla,
+se detiene y no se sube nada.
+
+```bash
+cd deploy/somee
+./check.sh     # solo verificar
+./all.sh       # verificar + publicar API + preparar frontend
+```
+
 ## 0. Antes de empezar
 
 En el panel de Somee confirma:

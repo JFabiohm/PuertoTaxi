@@ -3,6 +3,9 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
+# Regla del proyecto: nada se publica sin pasar antes la verificación.
+"$HERE/check.sh"
+
 "$HERE/publish.sh"
 "$HERE/upload.sh"
 "$HERE/deploy-frontend.sh"
