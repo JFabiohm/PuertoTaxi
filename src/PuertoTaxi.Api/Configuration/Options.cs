@@ -29,6 +29,12 @@ public sealed class OtpOptions
     public int MaxAttempts { get; set; } = 5;
     public int CooldownSeconds { get; set; } = 60;
     public int MaxPerDay { get; set; } = 10;
+
+    /// <summary>
+    /// Modo temporal para probar sin proveedor de SMS: no envía nada y devuelve
+    /// el código en la respuesta. Nunca activar en un sitio público real.
+    /// </summary>
+    public bool TestMode { get; set; }
 }
 
 public sealed class SeedOptions

@@ -16,7 +16,6 @@ public sealed class AuthController(
     TokenService tokens,
     AuditService audit,
     CurrentUser current,
-    IHostEnvironment env,
     IConfiguration config,
     ILogger<AuthController> logger) : ControllerBase
 {
@@ -63,9 +62,10 @@ public sealed class AuthController(
             return Problem(statusCode: 502, title: "No se pudo enviar el código",
                 detail: "Intenta de nuevo en unos minutos.");
 
-        // Solo en desarrollo y con la bandera explícita: evita depender de un SMS real
-        // al probar localmente. Nunca se activa en producción por defecto.
-        if (env.IsDevelopment() && config.GetValue<bool>("Otp:ExposeCodeInDevelopment"))
+        // En desarrollo se usa la bandera de appsettings; en producción solo se
+        // expone el código si Otp:TestMode está activo explícitamente (temporal).
+        if (config.GetValue<bool>("Otp:TestMode") ||
+            config.GetValue<bool>("Otp:ExposeCodeInDevelopment"))
             return Accepted(new { ok = true, devCode = code });
 
         // Respuesta uniforme: no revela si el número ya existe.

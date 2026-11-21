@@ -132,6 +132,8 @@ variables = [
     ("Seed__DemoData", "false"),
     ("App__AllowedOrigins", val("FRONTEND_ORIGINS")),
     ("App__RequireHttps", "true" if truthy("SOMEE_HTTPS") else "false"),
+    # Temporal: devuelve el OTP en la respuesta y no envía SMS. Solo para pruebas.
+    ("Otp__TestMode", "true" if truthy("OTP_TEST_MODE") else "false"),
 ]
 
 if truthy("SOMEE_HTTPS"):

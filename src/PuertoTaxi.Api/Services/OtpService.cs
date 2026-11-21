@@ -63,6 +63,13 @@ public sealed class OtpService(
 
         await db.SaveChangesAsync(ct);
 
+        // Modo prueba: el código se devuelve al cliente y no se envía por SMS/WhatsApp.
+        if (_opt.TestMode)
+        {
+            logger.LogWarning("OTP en modo prueba; no se envió ningún SMS.");
+            return (null, code);
+        }
+
         try
         {
             if (whatsapp.IsOtpConfigured)
